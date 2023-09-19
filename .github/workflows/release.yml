@@ -1,0 +1,57 @@
+name: Manual release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+
+jobs:
+  release:
+    runs-on: windows-2019
+    
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+    
+    steps:
+    - uses: actions/checkout@v1
+      name: Checkout Code
+    
+    - name: Setup MSBuild Path
+      uses: warrenbuckley/Setup-MSBuild@v1
+      
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.2
+     
+    - name: Restore NuGet Packages
+      run: nuget restore TimeScaleRandomizer.sln
+ 
+    - name: Build and Publish
+      run: msbuild TimeScaleRandomizer.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile /p:Version=${{ github.event.inputs.version }}
+
+    - name: Zip artifacts
+      run: |
+        mkdir assets
+        powershell Compress-Archive -Path bin/BepInEx -DestinationPath assets/TimeScaleRandomizer.zip
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        release_name: Release v${{ github.event.inputs.version }}
+        body: write the changelog you lazy fuk
+        draft: true
+        prerelease: false
+        
+    - name: Upload Release Assets
+      id: upload-release-assets
+      uses: dwenegar/upload-release-assets@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: assets
