@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net35</TargetFramework>
-        <OutputPath>..\bin\BepInEx\plugins\TimeScaleRandomizer\</OutputPath>
+        <OutputPath>..\bin\mono\BepInEx\plugins\TimeScaleRandomizer\</OutputPath>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
     <ItemGroup>

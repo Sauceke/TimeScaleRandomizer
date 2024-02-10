@@ -72,10 +72,12 @@ namespace TimeScaleRandomizer
                     yield return new WaitForSeconds(1f);
                     continue;
                 }
-                float waitSecs = Random.Range(waitSecsMin.Value, waitSecsMax.Value);
+                float waitSecs = UnityEngine.Random.Range(waitSecsMin.Value, waitSecsMax.Value);
                 yield return new WaitForSeconds(waitSecs * Time.timeScale);
-                float newTimeScale = Random.Range(timeScaleMin.Value, timeScaleMax.Value);
-                float changeSecs = Random.Range(changeSecsMin.Value, changeSecsMax.Value);
+                float newTimeScale = UnityEngine.Random
+                    .Range(timeScaleMin.Value, timeScaleMax.Value);
+                float changeSecs = UnityEngine.Random
+                    .Range(changeSecsMin.Value, changeSecsMax.Value);
                 yield return ChangeTimeScale(newTimeScale, changeSecs);
             }
         }
