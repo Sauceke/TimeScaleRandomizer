@@ -29,8 +29,8 @@ jobs:
       - name: Zip artifacts
         run: |
           mkdir assets
-          zip -r assets/TimeScaleRandomizer.zip bin/mono/BepInEx
-          zip -r assets/TimeScaleRandomizer.IL2CPP.zip bin/il2cpp/BepInEx
+          zip -rj assets/TimeScaleRandomizer.zip bin/mono/BepInEx
+          zip -rj assets/TimeScaleRandomizer.IL2CPP.zip bin/il2cpp/BepInEx
 
       - name: Create Release
         id: create_release
