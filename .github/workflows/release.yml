@@ -1,57 +1,54 @@
-name: Manual release
+name: Release
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version'
+        description: "Release version (major.minor.patch, without the v)"
         required: true
 
 jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ github.event.inputs.version }}
+
   release:
-    runs-on: windows-2019
+    needs: build
+    runs-on: ubuntu-latest
     
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     
     steps:
-    - uses: actions/checkout@v1
-      name: Checkout Code
-    
-    - name: Setup MSBuild Path
-      uses: warrenbuckley/Setup-MSBuild@v1
-      
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.2
-     
-    - name: Restore NuGet Packages
-      run: nuget restore TimeScaleRandomizer.sln
- 
-    - name: Build and Publish
-      run: msbuild TimeScaleRandomizer.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile /p:Version=${{ github.event.inputs.version }}
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: .
 
-    - name: Zip artifacts
-      run: |
-        mkdir assets
-        powershell Compress-Archive -Path bin/BepInEx -DestinationPath assets/TimeScaleRandomizer.zip
+      - name: Zip artifacts
+        run: |
+          mkdir assets
+          zip -r assets/TimeScaleRandomizer.zip bin/mono/BepInEx
+          zip -r assets/TimeScaleRandomizer.IL2CPP.zip bin/il2cpp/BepInEx
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ github.event.inputs.version }}
-        release_name: Release v${{ github.event.inputs.version }}
-        body: write the changelog you lazy fuk
-        draft: true
-        prerelease: false
-        
-    - name: Upload Release Assets
-      id: upload-release-assets
-      uses: dwenegar/upload-release-assets@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        release_id: ${{ steps.create_release.outputs.id }}
-        assets_path: assets
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: Release v${{ github.event.inputs.version }}
+          body: write the changelog you lazy fuk
+          draft: true
+          prerelease: false
+          
+      - name: Upload Release Assets
+        id: upload-release-assets
+        uses: dwenegar/upload-release-assets@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ steps.create_release.outputs.id }}
+          assets_path: assets

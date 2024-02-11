@@ -1,11 +1,12 @@
 ﻿using System.Collections;
 using BepInEx;
 using BepInEx.Configuration;
+using Generated;
 using UnityEngine;
 
 namespace TimeScaleRandomizer
 {
-    [BepInPlugin("Sauceke.TimeScaleRandomizer", "Time Scale Randomizer", "1.0.0")]
+    [BepInPlugin("Sauceke.TimeScaleRandomizer", "Time Scale Randomizer", VersionInfo.Version)]
     internal class Plugin : BaseUnityPlugin
     {
         private ConfigEntry<bool> enabled;
