@@ -15,6 +15,9 @@ namespace TimeScaleRandomizer
         private ConfigEntry<float> waitSecsMax;
         private ConfigEntry<float> changeSecsMin;
         private ConfigEntry<float> changeSecsMax;
+        private ConfigEntry<bool> runAtStartup;
+        private ConfigEntry<KeyCode> startKey;
+        private ConfigEntry<KeyCode> stopKey;
 
         private void Start()
         {
@@ -54,10 +57,46 @@ namespace TimeScaleRandomizer
                 acceptableValues: new AcceptableValueRange<float>(0f, 30f),
                 lower: out changeSecsMin,
                 upper: out changeSecsMax);
-            StartCoroutine(Run());
+            runAtStartup = Config.Bind(
+                section: title,
+                key: "Run At Startup",
+                defaultValue: true,
+                configDescription: new ConfigDescription(
+                    description: "Whether to start randomizing on startup."));
+            startKey = Config.Bind(
+                section: title,
+                key: "Start Key",
+                defaultValue: KeyCode.R,
+                configDescription: new ConfigDescription(
+                    description: "Press this key to start randomization."));
+            stopKey = Config.Bind(
+                section: title,
+                key: "Stop Key",
+                defaultValue: KeyCode.F,
+                configDescription: new ConfigDescription(
+                    description: "Press this key to stop randomization."));
+            StartCoroutine(Listen());
         }
-        
-        private IEnumerator Run()
+
+        private IEnumerator Listen()
+        {
+            if (!runAtStartup.Value)
+            {
+                yield return WaitForKey(startKey.Value);
+            }
+            while (true)
+            {
+                Logger.LogInfo("Starting randomization");
+                var randomize = StartCoroutine(Randomize());
+                yield return WaitForKey(stopKey.Value);
+                Logger.LogInfo("Stopping randomization");
+                StopCoroutine(randomize);
+                Time.timeScale = 1f;
+                yield return WaitForKey(startKey.Value);
+            }
+        }
+
+        private IEnumerator Randomize()
         {
             while (true)
             {
@@ -72,13 +111,13 @@ namespace TimeScaleRandomizer
                     yield return new WaitForSeconds(1f);
                     continue;
                 }
-                float waitSecs = UnityEngine.Random.Range(waitSecsMin.Value, waitSecsMax.Value);
-                yield return new WaitForSeconds(waitSecs * Time.timeScale);
                 float newTimeScale = UnityEngine.Random
                     .Range(timeScaleMin.Value, timeScaleMax.Value);
                 float changeSecs = UnityEngine.Random
                     .Range(changeSecsMin.Value, changeSecsMax.Value);
                 yield return ChangeTimeScale(newTimeScale, changeSecs);
+                float waitSecs = UnityEngine.Random.Range(waitSecsMin.Value, waitSecsMax.Value);
+                yield return new WaitForSeconds(waitSecs * Time.timeScale);
             }
         }
 
@@ -91,6 +130,14 @@ namespace TimeScaleRandomizer
             {
                 yield return new WaitForSeconds(refreshTimeSecs * Time.timeScale);
                 Time.timeScale = Mathf.Lerp(startTimeScale, targetTimeScale, (i + 1f) / iterations);
+            }
+        }
+        
+        private static IEnumerator WaitForKey(KeyCode key)
+        {
+            while (!Input.GetKey(key))
+            {
+                yield return null;
             }
         }
     }
