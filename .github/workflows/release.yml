@@ -15,7 +15,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: windows-2022
     
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -29,8 +29,8 @@ jobs:
       - name: Zip artifacts
         run: |
           mkdir assets
-          zip -rj assets/TimeScaleRandomizer.zip bin/mono/BepInEx
-          zip -rj assets/TimeScaleRandomizer.IL2CPP.zip bin/il2cpp/BepInEx
+          Compress-Archive -Path bin/mono/BepInEx -DestinationPath assets/TimeScaleRandomizer.zip
+          Compress-Archive -Path bin/il2cpp/BepInEx -DestinationPath assets/TimeScaleRandomizer.IL2CPP.zip
 
       - name: Create Release
         id: create_release
